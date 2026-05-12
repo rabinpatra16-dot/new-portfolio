@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rabi • Developer & Trader</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --obsidian: #0a0a0f;
+    --deep: #0f0f1a;
+    --surface: #141422;
+    --card: #1a1a2e;
+    --amber: #f59e0b;
+    --amber-glow: #fbbf24;
+    --emerald: #10b981;
+    --coral: #f97316;
+    --muted: #4a4a6a;
+    --text: #e8e8f0;
+    --subtle: #9090b0;
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--obsidian);
+    color: var(--text);
+    font-family: 'Outfit', sans-serif;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* Custom cursor */
+  .cursor {
+    width: 12px; height: 12px;
+    background: var(--amber);
+    border-radius: 50%;
+    position: fixed;
+    top: 0; left: 0;
+    pointer-events: none;
+    z-index: 9999;
+    transition: transform 0.15s ease;
+    mix-blend-mode: difference;
+  }
+  .cursor-ring {
+    width: 36px; height: 36px;
+    border: 1px solid rgba(245,158,11,0.5);
+    border-radius: 50%;
+    position: fixed;
+    top: 0; left: 0;
+    pointer-events: none;
+    z-index: 9998;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  /* Noise texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    opacity: 0.4;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 1.5rem 4rem;
+    background: linear-gradient(to bottom, rgba(10,10,15,0.95), transparent);
+    backdrop-filter: blur(8px);
+  }
+  .nav-logo {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--amber);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+  .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+  .nav-links a {
+    color: var(--subtle);
+    text-decoration: none;
+    font-size: 0.82rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition: color 0.3s;
+    position: relative;
+  }
+  .nav-links a::after {
+    content: '';
+    position: absolute; bottom: -4px; left: 0;
+    width: 0; height: 1px;
+    background: var(--amber);
+    transition: width 0.3s;
+  }
+  .nav-links a:hover { color: var(--amber); }
+  .nav-links a:hover::after { width: 100%; }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    padding: 0 4rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-bg {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 60% 60% at 70% 50%, rgba(245,158,11,0.06) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 40% at 20% 80%, rgba(16,185,129,0.04) 0%, transparent 70%);
+  }
+
+  /* Grid lines */
+  .hero-grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(245,158,11,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(245,158,11,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  .hero-left { position: relative; z-index: 1; }
+
+  .hero-tag {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--emerald);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 2rem;
+    animation: fadeUp 0.8s ease both;
+  }
+  .hero-tag::before {
+    content: '';
+    width: 24px; height: 1px;
+    background: var(--emerald);
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(3.5rem, 6vw, 5.5rem);
+    font-weight: 900;
+    line-height: 1.05;
+    margin-bottom: 1.5rem;
+    animation: fadeUp 0.8s 0.1s ease both;
+  }
+  h1 em {
+    font-style: italic;
+    color: var(--amber);
+  }
+
+  .hero-desc {
+    color: var(--subtle);
+    font-size: 1.05rem;
+    line-height: 1.8;
+    max-width: 420px;
+    margin-bottom: 2.5rem;
+    font-weight: 300;
+    animation: fadeUp 0.8s 0.2s ease both;
+  }
+
+  .hero-cta {
+    display: flex; gap: 1rem; flex-wrap: wrap;
+    animation: fadeUp 0.8s 0.3s ease both;
+  }
+
+  .btn-primary {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: var(--amber);
+    color: var(--obsidian);
+    padding: 0.85rem 2rem;
+    font-weight: 600;
+    font-size: 0.88rem;
+    letter-spacing: 0.05em;
+    text-decoration: none;
+    transition: all 0.3s;
+    clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+  }
+  .btn-primary:hover {
+    background: var(--amber-glow);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(245,158,11,0.3);
+  }
+
+  .btn-ghost {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    border: 1px solid var(--muted);
+    color: var(--text);
+    padding: 0.85rem 2rem;
+    font-size: 0.88rem;
+    letter-spacing: 0.05em;
+    text-decoration: none;
+    transition: all 0.3s;
+  }
+  .btn-ghost:hover {
+    border-color: var(--amber);
+    color: var(--amber);
+    transform: translateY(-2px);
+  }
+
+  /* Floating stats on hero right */
+  .hero-right {
+    position: relative; z-index: 1;
+    display: flex; justify-content: center; align-items: center;
+  }
+
+  .hero-visual {
+    position: relative;
+    width: 380px; height: 380px;
+  }
+
+  .hero-ring {
+    position: absolute; inset: 0;
+    border-radius: 50%;
+    border: 1px solid rgba(245,158,11,0.15);
+    animation: spin 20s linear infinite;
+  }
+  .hero-ring::before {
+    content: '';
+    position: absolute;
+    top: -3px; left: 50%;
+    transform: translateX(-50%);
+    width: 6px; height: 6px;
+    background: var(--amber);
+    border-radius: 50%;
+  }
+  .hero-ring-2 {
+    position: absolute;
+    inset: 30px;
+    border-radius: 50%;
+    border: 1px solid rgba(16,185,129,0.1);
+    animation: spin 15s linear infinite reverse;
+  }
+
+  .hero-center {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+
+  .hero-avatar {
+    width: 140px; height: 140px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--surface), var(--card));
+    border: 2px solid rgba(245,158,11,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 3.5rem;
+    font-weight: 900;
+    color: var(--amber);
+    margin: 0 auto 1rem;
+  }
+
+  .stat-bubble {
+    position: absolute;
+    background: var(--card);
+    border: 1px solid rgba(245,158,11,0.15);
+    padding: 0.75rem 1.2rem;
+    backdrop-filter: blur(10px);
+  }
+  .stat-bubble .num {
+    font-family: 'DM Mono', monospace;
+    font-size: 1.4rem;
+    color: var(--amber);
+    font-weight: 500;
+  }
+  .stat-bubble .label {
+    font-size: 0.7rem;
+    color: var(--subtle);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .stat-1 { top: 40px; right: -20px; animation: float 4s ease-in-out infinite; }
+  .stat-2 { bottom: 60px; left: -30px; animation: float 4s 1.5s ease-in-out infinite; }
+  .stat-3 { top: 150px; right: -50px; animation: float 4s 0.8s ease-in-out infinite; }
+
+  /* SECTIONS */
+  section { position: relative; z-index: 1; }
+
+  .section-header {
+    display: flex; align-items: center; gap: 1rem;
+    margin-bottom: 3.5rem;
+  }
+  .section-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--amber);
+    opacity: 0.6;
+  }
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 3vw, 2.8rem);
+    font-weight: 700;
+  }
+  .section-line {
+    flex: 1; height: 1px;
+    background: linear-gradient(to right, rgba(245,158,11,0.3), transparent);
+  }
+
+  /* ABOUT */
+  #about {
+    padding: 7rem 4rem;
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 5rem;
+    align-items: center;
+  }
+
+  .about-text p {
+    color: var(--subtle);
+    font-size: 1rem;
+    line-height: 1.9;
+    margin-bottom: 1.2rem;
+    font-weight: 300;
+  }
+  .about-text strong { color: var(--amber); font-weight: 500; }
+
+  .skills-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: rgba(245,158,11,0.1);
+    border: 1px solid rgba(245,158,11,0.1);
+  }
+  .skill-item {
+    background: var(--deep);
+    padding: 1.5rem;
+    transition: background 0.3s;
+  }
+  .skill-item:hover { background: var(--card); }
+  .skill-item .sk-icon {
+    font-size: 1.5rem; margin-bottom: 0.7rem;
+  }
+  .skill-item .sk-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.3rem;
+  }
+  .skill-item .sk-desc {
+    font-size: 0.75rem;
+    color: var(--subtle);
+  }
+
+  /* PROJECTS */
+  #projects { padding: 7rem 4rem; }
+
+  .projects-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 1.5rem;
+  }
+
+  .project-card {
+    background: var(--card);
+    border: 1px solid rgba(245,158,11,0.08);
+    padding: 2.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+  .project-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(to right, var(--amber), transparent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s;
+  }
+  .project-card:hover { border-color: rgba(245,158,11,0.25); transform: translateY(-4px); }
+  .project-card:hover::before { transform: scaleX(1); }
+
+  .project-card.featured { grid-row: span 2; }
+
+  .proj-tag {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--emerald);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 1.2rem;
+    border: 1px solid rgba(16,185,129,0.3);
+    padding: 0.2rem 0.6rem;
+  }
+  .proj-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    line-height: 1.2;
+  }
+  .project-card.featured .proj-title { font-size: 2.2rem; }
+
+  .proj-desc {
+    color: var(--subtle);
+    font-size: 0.9rem;
+    line-height: 1.7;
+    margin-bottom: 1.5rem;
+    font-weight: 300;
+  }
+
+  .proj-tech {
+    display: flex; flex-wrap: wrap; gap: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .tech-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    background: rgba(245,158,11,0.08);
+    color: var(--amber);
+    padding: 0.25rem 0.7rem;
+    letter-spacing: 0.08em;
+  }
+
+  .proj-link {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    font-size: 0.8rem;
+    color: var(--amber);
+    font-weight: 500;
+    letter-spacing: 0.05em;
+  }
+  .proj-link svg { transition: transform 0.2s; }
+  .project-card:hover .proj-link svg { transform: translate(3px, -3px); }
+
+  /* Featured project visual */
+  .proj-visual {
+    height: 160px;
+    background: linear-gradient(135deg, rgba(245,158,11,0.05), rgba(16,185,129,0.05));
+    border: 1px solid rgba(245,158,11,0.1);
+    margin-bottom: 1.5rem;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .proj-visual-chart {
+    display: flex; align-items: flex-end; gap: 4px; padding: 1rem;
+  }
+  .chart-bar {
+    width: 12px;
+    background: linear-gradient(to top, var(--amber), var(--coral));
+    opacity: 0.7;
+    border-radius: 2px 2px 0 0;
+    animation: barGrow 1s ease both;
+  }
+
+  /* CONTACT */
+  #contact {
+    padding: 7rem 4rem;
+    text-align: center;
+  }
+  .contact-inner {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  .contact-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    font-weight: 900;
+    margin-bottom: 1rem;
+    line-height: 1.1;
+  }
+  .contact-title em { color: var(--amber); font-style: italic; }
+  .contact-sub {
+    color: var(--subtle);
+    font-size: 1rem;
+    line-height: 1.7;
+    margin-bottom: 2.5rem;
+    font-weight: 300;
+  }
+
+  .social-row {
+    display: flex; justify-content: center; gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .social-link {
+    display: flex; align-items: center; gap: 0.5rem;
+    color: var(--subtle);
+    text-decoration: none;
+    font-size: 0.85rem;
+    padding: 0.7rem 1.4rem;
+    border: 1px solid var(--muted);
+    transition: all 0.3s;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.05em;
+  }
+  .social-link:hover {
+    color: var(--amber);
+    border-color: var(--amber);
+    background: rgba(245,158,11,0.05);
+  }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid rgba(245,158,11,0.08);
+    padding: 2rem 4rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  footer span {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+  .footer-dot {
+    width: 6px; height: 6px;
+    background: var(--emerald);
+    border-radius: 50%;
+    animation: pulse 2s ease infinite;
+  }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+  @keyframes barGrow {
+    from { height: 0; }
+    to { height: var(--h); }
+  }
+
+  /* Scroll reveal */
+  .reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Mobile */
+  @media (max-width: 768px) {
+    nav { padding: 1.2rem 1.5rem; }
+    .nav-links { display: none; }
+    .hero { grid-template-columns: 1fr; padding: 6rem 1.5rem 3rem; text-align: center; }
+    .hero-right { display: none; }
+    .hero-desc { max-width: 100%; }
+    .hero-cta { justify-content: center; }
+    #about { grid-template-columns: 1fr; padding: 4rem 1.5rem; gap: 2.5rem; }
+    #projects { padding: 4rem 1.5rem; }
+    .projects-grid { grid-template-columns: 1fr; }
+    .project-card.featured { grid-row: span 1; }
+    .project-card.featured .proj-title { font-size: 1.7rem; }
+    #contact { padding: 4rem 1.5rem; }
+    footer { padding: 1.5rem; flex-direction: column; gap: 0.5rem; text-align: center; }
+    body { cursor: auto; }
+    .cursor, .cursor-ring { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<nav>
+  <div class="nav-logo">Rabi_dev</div>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#projects">Projects</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+
+  <div class="hero-left">
+    <div class="hero-tag">Available for work</div>
+    <h1>Web Dev<br>& <em>Stock</em><br>Trader</h1>
+    <p class="hero-desc">
+      I build production-grade web applications and analyze Indian stock markets with technical precision. Based in West Bengal — working globally.
+    </p>
+    <div class="hero-cta">
+      <a href="#projects" class="btn-primary">
+        View Projects
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+      <a href="#contact" class="btn-ghost">Get in Touch</a>
+    </div>
+  </div>
+
+  <div class="hero-right">
+    <div class="hero-visual">
+      <div class="hero-ring"></div>
+      <div class="hero-ring-2"></div>
+      <div class="hero-center">
+        <div class="hero-avatar">R</div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--subtle);letter-spacing:0.1em;">RABI</div>
+      </div>
+      <div class="stat-bubble stat-1">
+        <div class="num">5+</div>
+        <div class="label">Projects</div>
+      </div>
+      <div class="stat-bubble stat-2">
+        <div class="num">NSE</div>
+        <div class="label">Trader</div>
+      </div>
+      <div class="stat-bubble stat-3">
+        <div class="num">Firebase</div>
+        <div class="label">Cloud Sync</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div>
+    <div class="section-header reveal">
+      <span class="section-num">01</span>
+      <h2 class="section-title">About</h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="about-text reveal">
+      <p>I'm a <strong>self-taught web developer</strong> from West Bengal with a passion for building practical tools that solve real problems. My work sits at the intersection of technology and finance.</p>
+      <p>When I'm not coding, I'm analyzing <strong>SENSEX charts</strong> and studying options trading strategies on the NSE. I believe good software and good trades share the same foundation — <strong>precision and discipline</strong>.</p>
+      <p>I'm currently open to freelance projects on platforms like <strong>Fiverr & Upwork</strong>, focusing on web development and automation tools.</p>
+    </div>
+  </div>
+
+  <div class="skills-grid reveal">
+    <div class="skill-item">
+      <div class="sk-icon">🌐</div>
+      <div class="sk-name">Frontend Dev</div>
+      <div class="sk-desc">HTML, CSS, JavaScript, Single-page apps</div>
+    </div>
+    <div class="skill-item">
+      <div class="sk-icon">🔥</div>
+      <div class="sk-name">Firebase</div>
+      <div class="sk-desc">Firestore, Auth, Cloud Sync</div>
+    </div>
+    <div class="skill-item">
+      <div class="sk-icon">📊</div>
+      <div class="sk-name">Technical Analysis</div>
+      <div class="sk-desc">SENSEX, Options, Chart patterns</div>
+    </div>
+    <div class="skill-item">
+      <div class="sk-icon">☁️</div>
+      <div class="sk-name">Cloud & Deploy</div>
+      <div class="sk-desc">GitHub Pages, Cloudinary CDN</div>
+    </div>
+    <div class="skill-item">
+      <div class="sk-icon">📈</div>
+      <div class="sk-name">Data Viz</div>
+      <div class="sk-desc">Chart.js, Analytics dashboards</div>
+    </div>
+    <div class="skill-item">
+      <div class="sk-icon">🤖</div>
+      <div class="sk-name">AI Integration</div>
+      <div class="sk-desc">Anthropic API, AI-powered tools</div>
+    </div>
+  </div>
+</section>
+
+<!-- PROJECTS -->
+<section id="projects">
+  <div class="section-header reveal">
+    <span class="section-num">02</span>
+    <h2 class="section-title">Projects</h2>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="projects-grid">
+
+    <!-- Featured -->
+    <a href="https://rabinpatra16-dot.github.io/trading-journal" target="_blank" class="project-card featured reveal">
+      <div class="proj-visual">
+        <div class="proj-visual-chart">
+          <div class="chart-bar" style="--h:40px; height:40px;"></div>
+          <div class="chart-bar" style="--h:70px; height:70px;"></div>
+          <div class="chart-bar" style="--h:50px; height:50px;"></div>
+          <div class="chart-bar" style="--h:90px; height:90px;"></div>
+          <div class="chart-bar" style="--h:65px; height:65px;"></div>
+          <div class="chart-bar" style="--h:110px; height:110px;"></div>
+          <div class="chart-bar" style="--h:80px; height:80px;"></div>
+          <div class="chart-bar" style="--h:130px; height:130px;"></div>
+        </div>
+      </div>
+      <div class="proj-tag">★ Featured Project</div>
+      <div class="proj-title">ProTrader Journal</div>
+      <p class="proj-desc">
+        A full-featured stock trading journal web app with Firebase cloud sync, Cloudinary screenshot storage, NSE autocomplete for 1500+ symbols, Chart.js analytics, TradingView integration, and PWA support. Tracks trades across devices in real-time.
+      </p>
+      <div class="proj-tech">
+        <span class="tech-badge">JavaScript</span>
+        <span class="tech-badge">Firebase</span>
+        <span class="tech-badge">Cloudinary</span>
+        <span class="tech-badge">Chart.js</span>
+        <span class="tech-badge">NSE API</span>
+        <span class="tech-badge">PWA</span>
+      </div>
+      <div class="proj-link">
+        Live App
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M7 7h10v10"/></svg>
+      </div>
+    </a>
+
+    <!-- Card 2 -->
+    <a href="#" class="project-card reveal">
+      <div class="proj-tag">Design</div>
+      <div class="proj-title">Bengali Cultural Posters</div>
+      <p class="proj-desc">
+        Elaborate HTML/CSS artistic posters for Pohela Boishakh and Hanuman Jayanti — culturally rich, animated designs.
+      </p>
+      <div class="proj-tech">
+        <span class="tech-badge">HTML</span>
+        <span class="tech-badge">CSS Art</span>
+        <span class="tech-badge">SVG</span>
+      </div>
+      <div class="proj-link">
+        View Work
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M7 7h10v10"/></svg>
+      </div>
+    </a>
+
+    <!-- Card 3 -->
+    <a href="#" class="project-card reveal">
+      <div class="proj-tag">Data</div>
+      <div class="proj-title">PDF Report Generator</div>
+      <p class="proj-desc">
+        Automated professional diagnostic PDF generation using Python and ReportLab with formatted layouts.
+      </p>
+      <div class="proj-tech">
+        <span class="tech-badge">Python</span>
+        <span class="tech-badge">ReportLab</span>
+        <span class="tech-badge">PDF</span>
+      </div>
+      <div class="proj-link">
+        Details
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M7 7h10v10"/></svg>
+      </div>
+    </a>
+
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="contact-inner reveal">
+    <div class="contact-title">Let's build<br>something <em>great</em></div>
+    <p class="contact-sub">Open to freelance projects, collaborations, and interesting ideas. Based in West Bengal, working remotely worldwide.</p>
+    <div class="social-row">
+      <a href="https://github.com/rabinpatra16-dot" target="_blank" class="social-link">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        GitHub
+      </a>
+      <a href="mailto:your@email.com" class="social-link">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+        Email
+      </a>
+      <a href="https://www.fiverr.com" target="_blank" class="social-link">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M23.004 15.588a.995.995 0 1 0 .001-1.99.995.995 0 0 0-.001 1.99zm-.996-3.705h-1.506c-.32 0-.43-.188-.43-.5v-3.14h1.936v-1.55h-1.936V4.44h-1.683v2.254h-.988v1.55h.988v3.568c0 1.194.636 1.955 1.907 1.955h1.712v-1.884zm-6.ubai..."/></svg>
+        Fiverr
+      </a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <span>© 2025 Rabi • West Bengal, India</span>
+  <div style="display:flex;align-items:center;gap:0.5rem;">
+    <div class="footer-dot"></div>
+    <span>Available for work</span>
+  </div>
+</footer>
+
+<script>
+  // Cursor
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+  function animCursor() {
+    cursor.style.transform = `translate(${mx-6}px, ${my-6}px)`;
+    rx += (mx - rx) * 0.12;
+    ry += (my - ry) * 0.12;
+    ring.style.transform = `translate(${rx-18}px, ${ry-18}px)`;
+    requestAnimationFrame(animCursor);
+  }
+  animCursor();
+
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), i * 80);
+        obs.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  reveals.forEach(r => obs.observe(r));
+</script>
+</body>
+</html>
